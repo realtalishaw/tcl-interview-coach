@@ -7,40 +7,56 @@ interface AIJudgeProps {
   title: string;
   image: string;
   isAsking: boolean;
+  isSpeaking?: boolean;
+  lastMessage?: string;
 }
 
-export function AIJudge({ name, title, image, isAsking }: AIJudgeProps) {
+export function AIJudge({ 
+  name, 
+  title, 
+  image, 
+  isAsking, 
+  isSpeaking, 
+  lastMessage 
+}: AIJudgeProps) {
   return (
-    <Card className="relative overflow-hidden bg-gradient-to-r from-pink-500/10 to-purple-500/10 backdrop-blur-sm">
-      <div className="p-4">
-        <div className="flex items-center gap-3">
+    <div className="relative">
+      {isSpeaking && (
+        <>
+          <div className="absolute inset-0 -z-10">
+            <div className="absolute inset-0 animate-pulse bg-gradient-radial from-pink-500/50 via-pink-500/30 to-transparent rounded-lg blur-md" />
+          </div>
+          <div className="absolute inset-0 -z-10">
+            <div className="absolute inset-0 animate-ping bg-gradient-to-r from-pink-500/10 via-pink-500/20 to-pink-500/10 rounded-lg" />
+          </div>
+        </>
+      )}
+      <div className={`bg-black/50 backdrop-blur-sm rounded-lg p-4 transition-all duration-200 ${isSpeaking ? 'ring-2 ring-pink-500/50' : ''}`}>
+        <div className="flex items-center gap-4">
           <div className="relative">
             <img
               src={image}
               alt={name}
-              className="w-16 h-16 rounded-full object-cover border-2 border-white"
+              className="w-12 h-12 rounded-full object-cover"
             />
             {isAsking && (
-              <div className="absolute inset-0 -z-10">
-                {[...Array(3)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="absolute inset-0 rounded-full border-2 border-pink-500/30 animate-ping"
-                    style={{
-                      animationDelay: `${i * 0.5}s`,
-                      animationDuration: "2s",
-                    }}
-                  />
-                ))}
-              </div>
+              <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full animate-pulse" />
+            )}
+            {isSpeaking && (
+              <div className="absolute -inset-1 bg-gradient-to-r from-pink-500/30 to-purple-500/30 rounded-full animate-pulse" />
             )}
           </div>
           <div>
-            <h3 className="font-semibold text-white">{name}</h3>
-            <p className="text-sm text-white/80">{title}</p>
+            <h3 className="font-medium text-white">{name}</h3>
+            <p className="text-sm text-gray-300">{title}</p>
           </div>
         </div>
+        {lastMessage && (
+          <div className="mt-3 text-sm text-gray-200 p-3 rounded bg-black/40 border border-pink-500/20">
+            {lastMessage}
+          </div>
+        )}
       </div>
-    </Card>
+    </div>
   );
 }

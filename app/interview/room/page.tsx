@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { AIJudge } from "@/components/interview/ai-judge";
 import { VideoControls } from "@/components/interview/video-controls";
 import { VideoOff } from "lucide-react";
+import InterviewChat from "@/components/InterviewChat";
 
 const judge = {
   id: 1,
@@ -14,24 +15,17 @@ const judge = {
   image: "https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=400",
 };
 
-const questions = [
-  "What motivated you to participate in pageants?",
-  "How would you use your platform to make a difference?",
-  "What do you consider your greatest achievement?",
-  "How do you handle criticism and pressure?",
-  "What sets you apart from other contestants?",
-];
-
 export default function InterviewRoom() {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [timeLeft, setTimeLeft] = useState(180); // 3 minutes
-  const [currentQuestion, setCurrentQuestion] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [isJudgeAsking, setIsJudgeAsking] = useState(false);
+  const [isJudgeSpeaking, setIsJudgeSpeaking] = useState(false);
+  const [lastAIMessage, setLastAIMessage] = useState<string>("");
 
   useEffect(() => {
     navigator.mediaDevices
@@ -57,15 +51,8 @@ export default function InterviewRoom() {
         setTimeLeft((prev) => prev - 1);
       }, 1000);
 
-      const questionTimer = setInterval(() => {
-        setIsJudgeAsking(true);
-        setTimeout(() => setIsJudgeAsking(false), 5000);
-        setCurrentQuestion((prev) => Math.min(prev + 1, questions.length - 1));
-      }, 36000); // Change question every 36 seconds
-
       return () => {
         clearInterval(timer);
-        clearInterval(questionTimer);
       };
     } else if (timeLeft === 0) {
       router.push("/interview/feedback");
@@ -96,6 +83,25 @@ export default function InterviewRoom() {
     }
   };
 
+  const handleStatusChange = (status: string) => {
+    console.log('Status update:', status);
+    if (status === 'speaking') {
+      setIsJudgeSpeaking(true);
+      setIsJudgeAsking(false);
+    } else if (status === 'listening') {
+      setIsJudgeSpeaking(false);
+      setIsJudgeAsking(true);
+    } else {
+      setIsJudgeSpeaking(false);
+      setIsJudgeAsking(false);
+    }
+  };
+
+  const handleAIMessage = (message: string) => {
+    console.log('AI Message:', message);
+    setLastAIMessage(message);
+  };
+
   return (
     <div className="fixed inset-0 bg-gradient-to-b from-gray-900 to-gray-800">
       <div className="relative h-full flex items-center justify-center">
@@ -120,10 +126,16 @@ export default function InterviewRoom() {
             title={judge.title}
             image={judge.image}
             isAsking={isJudgeAsking}
+            isSpeaking={isJudgeSpeaking}
+            lastMessage={lastAIMessage}
           />
           {isRecording && (
-            <div className="mt-4 p-4 bg-black/50 backdrop-blur-sm rounded-lg">
-              <p className="text-white text-center">{questions[currentQuestion]}</p>
+            <div className="mt-4">
+              <InterviewChat 
+                isRecording={isRecording} 
+                onStatusChange={handleStatusChange}
+                onAIMessage={handleAIMessage}
+              />
             </div>
           )}
         </div>

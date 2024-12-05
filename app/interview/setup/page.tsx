@@ -30,6 +30,8 @@ export default function InterviewSetup() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Store form data in localStorage
+    localStorage.setItem('interviewSetup', JSON.stringify(formData));
     router.push("/interview/room");
   };
 
